@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "deque": "c",
+        "forward_list": "c",
+        "list": "c"
+    }
+}
