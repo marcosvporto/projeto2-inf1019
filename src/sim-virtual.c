@@ -133,6 +133,8 @@ int main (int argc, char const* argv []){
 
     
     tp = loadPageTable( offSetBits );
+    
+
 
     printf("tamanho da TP %d \n",getSize());
 
