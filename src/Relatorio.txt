@@ -1,0 +1,8 @@
+Trabalho 2 de Sistemas da Computação
+Autores:Arthur Cavalcante Gomes Coelho - 1313099
+	Marcos Vinícius Porto de Sá
+
+---------------------------------------------------------------------------------------------
+Resumo do Projeto
+---------------------------------------------------------------------------------------------
+O programa simula a paginação realizada por uma MMU. A cada acesso à memória lido do arquivo .log, o programa verifica se a página referente está carregado na memória física, caso não esteja(page fault), realiza um algoritmo de substituição de páginas definido por linha de comando. Ao realizar a substituição, o programa indica se a página substituida foi modificada (página suja), pois teoricamente deveria ser carregada novamente para região de swap na memória secundária. 

@@ -7,7 +7,7 @@ struct pageTableEntry
     unsigned char present;
     unsigned char dirty;
     int chargeTime;
-    int futureUsage;
+    long futureUsage;
 };
 
 struct pageTable
@@ -107,7 +107,7 @@ int swapOut_LRU(int debug){
                 }
             }
         }
-        checkedFrames++;
+        //checkedFrames++;
     }
     (tp->tableEntries+lruIndex)->present = 0;
 
@@ -134,9 +134,9 @@ int swapOut_NOVO(int debug, int time, char * fileName, int offsetBits){
     int lruTime;
     int lruIndex;
     int minorUsage;
-    //int minorIndex = -1;
-    int checkedPages=0;
-    int checkedAdressess = 0;
+    int minorIndex = -1;
+    long checkedPages=0;
+    long checkedAdressess = 0;
     log = fopen(fileName,"r");
     if(fseek(log,(time)*11,SEEK_SET) == 0){
         while(fscanf(log, "%x %c ", &addr, &rw)!=EOF){
@@ -166,25 +166,22 @@ int swapOut_NOVO(int debug, int time, char * fileName, int offsetBits){
                 }
                 else{
                     if((tp->tableEntries+i)->futureUsage == 0 ){
-
                         (tp->tableEntries+i)->present = 0;
-
                         if(debug ==1){
                             printf("pagina %d removida com tempo de carga 0\n",i);
                     
                         }
-                
-                        if((tp->tableEntries+lruIndex)->modified == 1){
-
-                        (tp->tableEntries+lruIndex)->modified = 0;
-                        return 1; // dirty page
+                        if((tp->tableEntries+i)->modified == 1){
+                        	(tp->tableEntries+i)->modified = 0;
+				fclose(log);
+                        	return 1; // dirty page
                         }
                         else{
+			    fclose(log);
                             return 0; //clean page
                         }
-
                     }
-                    if (  (tp->tableEntries+i)->chargeTime + (tp->tableEntries+i)->futureUsage < lruTime ){
+                    if ((tp->tableEntries+i)->chargeTime +(tp->tableEntries+i)->futureUsage < lruTime){
                         lruTime = (tp->tableEntries+i)->chargeTime + (tp->tableEntries+i)->futureUsage;
                         lruIndex = i;
                         minorUsage = (tp->tableEntries+i)->futureUsage;
@@ -201,7 +198,7 @@ int swapOut_NOVO(int debug, int time, char * fileName, int offsetBits){
     //     exit(0);
     // }
     if(debug == 1){
-        printf("Pagina %d removida com uso futuro %d\n",lruIndex,minorUsage);
+        printf("Pagina %d removida com uso futuro %d\n",minorIndex,minorUsage);
     }
     (tp->tableEntries+lruIndex)->present = 0;
     if((tp->tableEntries+lruIndex)->modified == 1){
