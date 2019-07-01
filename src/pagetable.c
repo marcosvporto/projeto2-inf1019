@@ -7,6 +7,7 @@ struct pageTableEntry
     unsigned char present;
     unsigned char dirty;
     int chargeTime;
+    int futureUsage;
 };
 
 struct pageTable
@@ -34,6 +35,7 @@ void loadPageTable( int offSetBits ){
         (tp->tableEntries+i)->modified = 0;
         (tp->tableEntries+i)->present = 0;
         (tp->tableEntries+i)->referenced = 0;
+        (tp->tableEntries+i)->futureUsage = 0;
     }
 }
 
@@ -111,7 +113,6 @@ int swapOut_LRU(int debug){
 
     if(debug ==1){
         printf("pagina %d removida com tempo de carga %d\n",lruIndex,lruTime);
-        
     }
 
     if((tp->tableEntries+lruIndex)->modified == 1){
@@ -124,7 +125,92 @@ int swapOut_LRU(int debug){
     }
 
 }
+int swapOut_NOVO(int debug, int time, char * fileName, int offsetBits){
+    int i;
+    FILE * log;
+    int pageNumber;
+    unsigned int addr;
+    char rw;
+    int lruTime;
+    int lruIndex;
+    int minorUsage;
+    //int minorIndex = -1;
+    int checkedPages=0;
+    int checkedAdressess = 0;
+    log = fopen(fileName,"r");
+    if(fseek(log,(time)*11,SEEK_SET) == 0){
+        while(fscanf(log, "%x %c ", &addr, &rw)!=EOF){
+            checkedAdressess++;
+            pageNumber = addr >> offsetBits;
+            if((tp->tableEntries+pageNumber)->present == 1){
+                if(rw == 'W'){
+                    (tp->tableEntries+pageNumber)->futureUsage+=2;
+                }
+                else{
+                    (tp->tableEntries+pageNumber)->futureUsage+=1;
+                }
+            }
+            if(checkedAdressess > 68000){
+                break;
+            }
 
+        }
+        for(i=0;i<tp->size;i++){
+            if( (tp->tableEntries+i)->present == 1 ){
+                if(checkedPages == 0){
+                    checkedPages++;
+                    lruTime = (tp->tableEntries+i)->chargeTime + (tp->tableEntries+i)->futureUsage;
+                    lruIndex = i;
+                    minorUsage = (tp->tableEntries+i)->futureUsage;
+                    //minorIndex = i;
+                }
+                else{
+                    if((tp->tableEntries+i)->futureUsage == 0 ){
+
+                        (tp->tableEntries+i)->present = 0;
+
+                        if(debug ==1){
+                            printf("pagina %d removida com tempo de carga 0\n",i);
+                    
+                        }
+                
+                        if((tp->tableEntries+lruIndex)->modified == 1){
+
+                        (tp->tableEntries+lruIndex)->modified = 0;
+                        return 1; // dirty page
+                        }
+                        else{
+                            return 0; //clean page
+                        }
+
+                    }
+                    if (  (tp->tableEntries+i)->chargeTime + (tp->tableEntries+i)->futureUsage < lruTime ){
+                        lruTime = (tp->tableEntries+i)->chargeTime + (tp->tableEntries+i)->futureUsage;
+                        lruIndex = i;
+                        minorUsage = (tp->tableEntries+i)->futureUsage;
+                        //minorIndex = i;
+                    }
+                }
+            }
+        }
+        
+    }
+    fclose(log);
+    // while(fscanf(log, "%x %c ", &addr, &rw)!= EOF){
+    //     printf("%x %c\n",addr,rw);
+    //     exit(0);
+    // }
+    if(debug == 1){
+        printf("Pagina %d removida com uso futuro %d\n",lruIndex,minorUsage);
+    }
+    (tp->tableEntries+lruIndex)->present = 0;
+    if((tp->tableEntries+lruIndex)->modified == 1){
+        (tp->tableEntries+lruIndex)->modified = 0;
+        return 1; //dirty page
+
+    }
+    return 0; //clean page
+}
 int swapOut_NRU(int debug){
 
     int i;
@@ -155,7 +241,7 @@ int swapOut_NRU(int debug){
 
             if(debug ==1){
                         printf("pagina %d removida R=0 M=1\n",i);
-                        sleep(1);
+                        //sleep(1);
             }
 
             return  1;//dirty page
@@ -186,7 +272,7 @@ int swapOut_NRU(int debug){
 
             if(debug ==1){
                         printf("pagina %d removida R=1 M=1\n",i);
-                        sleep(1);
+                        //sleep(1);
             }
             return 1; // dirty page
         }
@@ -199,6 +285,8 @@ void setNotRecentlyUsed (){
     for(i = 0; i< tp->size ; i++){
         (tp->tableEntries+i)->chargeTime = 0;
         (tp->tableEntries+i)->referenced = 0;
+        (tp->tableEntries+i)->futureUsage = 0;
+        
     }
     
 }

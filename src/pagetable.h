@@ -15,6 +15,8 @@ int swapOut_NRU(int debug);
 
 int swapOut_LRU(int debug);
 
+int swapOut_NOVO(int debug, int time, char * fileName, int offsetBits);
+
 void setNotRecentlyUsed ();
 
 int getPresent(unsigned int addr, int offsetBits);

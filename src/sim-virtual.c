@@ -173,6 +173,10 @@ int main (int argc, char const* argv []){
                     dirtyPages+= swapOut_LRU(debug);
                     //printf("Pagina %d removida\n", swapOut_LRU());
                 }
+                else if(strcmp(argv[1],"NOVO")==0){
+                    //*(sizeof(unsigned int)+strlen(" ")+sizeof(char)+strlen("\0"))
+                    dirtyPages+=swapOut_NOVO(debug, time, logFileName, offSetBits);
+                }
                 swapIn(addr,rw,offSetBits,time);
                 if(debug){
                     printf("Página %d agora esta na memoria RW = %c\n",addr>>offSetBits, rw);
@@ -205,7 +209,7 @@ int main (int argc, char const* argv []){
 
 
 void alarmHandler(int signal){
-    time = 0;
+    //time = 0;
     setNotRecentlyUsed();
     if(debug){
         printf("--------------------------clock--------------------------------------\n");
