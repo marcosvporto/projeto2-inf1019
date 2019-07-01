@@ -1,8 +1,270 @@
 Trabalho 2 de Sistemas da Computação
-Autores:Arthur Cavalcante Gomes Coelho - 1313099
-	Marcos Vinícius Porto de Sá
+Autores:Arthur Cavalcante Gomes Coelho 	- 1313099
+	Marcos Vinícius Porto de Sá	- 1413428
 
 ---------------------------------------------------------------------------------------------
 Resumo do Projeto
 ---------------------------------------------------------------------------------------------
-O programa simula a paginação realizada por uma MMU. A cada acesso à memória lido do arquivo .log, o programa verifica se a página referente está carregado na memória física, caso não esteja(page fault), realiza um algoritmo de substituição de páginas definido por linha de comando. Ao realizar a substituição, o programa indica se a página substituida foi modificada (página suja), pois teoricamente deveria ser carregada novamente para região de swap na memória secundária. 
+O programa simula a paginação realizada por uma MMU. A cada acesso à memória lido do arquivo .log, o programa verifica se a página referente está carregado na memória física, caso não esteja(page fault), realiza um algoritmo de substituição de páginas definido por linha de comando. Ao realizar a substituição, o programa indica se a página substituida foi modificada (página suja), pois teoricamente deveria ser carregada novamente para região de swap na memória secundária.
+Para verificar se uma página está presente ou ausente na memória principal, o programa utiliza uma tabela de páginas (PageTable). A tabela de páginas consiste em um vetor de entradas de tabela de página (PageTableEntries). Cada entrada da tabela de páginas possui as seguintes informações:
+
+-referenced: indica se a página foi referenciada no ultimo intervalo de tempo (Bit R)
+-modified: indica se a página foi modificada no ultimo intervalo de tempo (Bit M)
+-present: indica se a página está presente na memória
+-chargeTime: indica o tempo de carga da página na memória, caso esta esteja na memória
+-futureUsage: indica quantas vezes a página será referenciada num futuro próximo
+
+O algoritmo NRU utiliza os parâmetros referenced e modified para realizar a substituição. O algoritmo prioriza substituir paginas nas seguintes condições, de forma ascendente no numero da condição:
+
+1.R=0 M=0
+2.R=0 M=1
+3.R=1 M=0
+4.R=1 M=1
+
+O algoritmo LRU utiliza o parâmetro chargeTime para realizar a substituição. Este prioriza a substituição de páginas com menor tempo de carga, o que significa que uma página foi carregada há mais tempo do que todas as outras.
+
+-------------------------------------------------------------------------------------------------
+O algoritmo NOVO
+-------------------------------------------------------------------------------------------------
+
+O algoritmo NOVO utiliza os parâmetros chargeTime e FutureUsage. O algoritmo foi pensado para melhorar o algoritmo LRU, pois prioriza a substituição das paginas com o menor tempo de carga, mas que serão pouco utilizados futuramente. Para fazer isso, é adicionado ao tempo de carga de cada pagina a quantidade de vezes que esta é acessada num futuro próximo. Ou seja, caso haja um empate técnico em tempo de carga (pequeno intervalo de tempo de carga) entre duas páginas, a que será substituida será aquela que tiver menos acessos num futuro próximo.
+
+-------------------------------------------------------------------------------------------------
+Análise de Desempenho para 8KB - compressor.log
+-------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual NRU compressor.log 8 1
+Executando o simulador...
+Arquivo de entrada: compressor.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 8 KB
+Algoritmo de substituição: NRU
+Numero de Faltas de Paginas: 1478
+Escritas de Páginas escritas: 91
+--------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual LRU compressor.log 8 1
+Executando o simulador...
+Arquivo de entrada: compressor.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 8 KB
+Algoritmo de substituição: LRU
+Numero de Faltas de Paginas: 405
+Escritas de Páginas escritas: 132
+---------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual NOVO compressor.log 8 1
+Executando o simulador...
+Arquivo de entrada: compressor.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 8 KB
+Algoritmo de substituição: NOVO
+Numero de Faltas de Paginas: 321
+Escritas de Páginas escritas: 139
+-------------------------------------------------------------------------------------------------
+Análise de Desempenho para 8KB - compilador.log
+-------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual NRU compilador.log 8 1
+Executando o simulador...
+Arquivo de entrada: compilador.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 8 KB
+Algoritmo de substituição: NRU
+Numero de Faltas de Paginas: 67958
+Escritas de Páginas escritas: 4329
+--------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual LRU compilador.log 8 1
+Executando o simulador...
+Arquivo de entrada: compilador.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 8 KB
+Algoritmo de substituição: LRU
+Numero de Faltas de Paginas: 36794
+Escritas de Páginas escritas: 5537
+---------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual NOVO compilador.log 8 1
+Executando o simulador...
+Arquivo de entrada: compilador.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 8 KB
+Algoritmo de substituição: NOVO
+Numero de Faltas de Paginas: 31852
+Escritas de Páginas escritas: 4907
+-------------------------------------------------------------------------------------------------
+Análise de Desempenho para 8KB - matriz.log
+-------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual NRU matriz.log 8 1
+Executando o simulador...
+Arquivo de entrada: matriz.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 8 KB
+Algoritmo de substituição: NRU
+Numero de Faltas de Paginas: 31792
+Escritas de Páginas escritas: 2303
+-------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual LRU matriz.log 8 1
+Executando o simulador...
+Arquivo de entrada: matriz.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 8 KB
+Algoritmo de substituição: LRU
+Numero de Faltas de Paginas: 10818
+Escritas de Páginas escritas: 3110
+-------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual NOVO matriz.log 8 1
+Executando o simulador...
+Arquivo de entrada: matriz.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 8 KB
+Algoritmo de substituição: NOVO
+Numero de Faltas de Paginas: 8300
+Escritas de Páginas escritas: 2563
+-------------------------------------------------------------------------------------------------
+Análise de Desempenho para 8KB - simulador.log
+-------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual NRU simulador.log 8 1
+Executando o simulador...
+Arquivo de entrada: simulador.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 8 KB
+Algoritmo de substituição: NRU
+Numero de Faltas de Paginas: 37473
+Escritas de Páginas escritas: 4755
+---------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual LRU simulador.log 8 1
+Executando o simulador...
+Arquivo de entrada: simulador.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 8 KB
+Algoritmo de substituição: LRU
+Numero de Faltas de Paginas: 16443
+Escritas de Páginas escritas: 5390
+---------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual NOVO simulador.log 8 1
+Executando o simulador...
+Arquivo de entrada: simulador.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 8 KB
+Algoritmo de substituição: NOVO
+Numero de Faltas de Paginas: 13520
+Escritas de Páginas escritas: 4762
+---------------------------------------------------------------------------------------------------
+Comentários sobre a análise de desempenho - 8KB 
+---------------------------------------------------------------------------------------------------
+Podemos observar que o desempenho de todos os 3 algoritmos de substituição se mantiveram coerentes, independente do arquivo de log utilizado.
+O algoritmo NRU foi o pior dos três, com números elevados de faltas de páginas e escrita de páginas sujas se comparado com os outros dois.
+O algoritmo LRU foi o segundo melhor, com números reduzidos de faltas de páginas e escrita de páginas sujas em relação ao NRU.
+O algoritmo NOVO foi o melhor, com numeros de faltas de páginas e escritas de páginas sujas ligeiramente menor que o LRU.
+Entretanto, algo que fica claro, é o fato de, apesar de ter números melhores, o tempo de execução completa do programa é bem maior com o algoritmo NOVO se comparado ao algoritmo LRU.
+Esse comportamento foi analisado considerando páginas de 8KB
+
+---------------------------------------------------------------------------------------------------
+Análise de desempenho para 16KB - compressor.log
+---------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual NRU compressor.log 16 1
+Executando o simulador...
+Arquivo de entrada: compressor.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 16 KB
+Algoritmo de substituição: NRU
+Numero de Faltas de Paginas: 4040
+Escritas de Páginas escritas: 298
+---------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual LRU compressor.log 16 1
+Executando o simulador...
+Arquivo de entrada: compressor.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 16 KB
+Algoritmo de substituição: LRU
+Numero de Faltas de Paginas: 665
+Escritas de Páginas escritas: 265
+---------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual NOVO compressor.log 16 1
+Executando o simulador...
+Arquivo de entrada: compressor.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 16 KB
+Algoritmo de substituição: NOVO
+Numero de Faltas de Paginas: 807
+Escritas de Páginas escritas: 289
+---------------------------------------------------------------------------------------------------
+Análise de desempenho para 16KB - compilador.log
+---------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual NRU compilador.log 16 1
+Executando o simulador...
+Arquivo de entrada: compilador.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 16 KB
+Algoritmo de substituição: NRU
+Numero de Faltas de Paginas: 128972
+Escritas de Páginas escritas: 5128
+---------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual LRU compilador.log 16 1
+Executando o simulador...
+Arquivo de entrada: compilador.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 16 KB
+Algoritmo de substituição: LRU
+Numero de Faltas de Paginas: 47441
+Escritas de Páginas escritas: 7693
+---------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual NOVO compilador.log 16 1
+Executando o simulador...
+Arquivo de entrada: compilador.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 16 KB
+Algoritmo de substituição: NOVO
+Numero de Faltas de Paginas: 48797
+Escritas de Páginas escritas: 6952
+
+---------------------------------------------------------------------------------------------------
+Análise de desempenho para 16KB - matriz.log
+---------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual NRU matriz.log 16 1
+Executando o simulador...
+Arquivo de entrada: matriz.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 16 KB
+Algoritmo de substituição: NRU
+Numero de Faltas de Paginas: 88686
+Escritas de Páginas escritas: 2937
+---------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual LRU matriz.log 16 1
+Executando o simulador...
+Arquivo de entrada: matriz.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 16 KB
+Algoritmo de substituição: LRU
+Numero de Faltas de Paginas: 15884
+Escritas de Páginas escritas: 4488
+---------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual NOVO matriz.log 16 1
+Executando o simulador...
+Arquivo de entrada: matriz.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 16 KB
+Algoritmo de substituição: NOVO
+Numero de Faltas de Paginas: 15615
+Escritas de Páginas escritas: 4334
+---------------------------------------------------------------------------------------------------
+Análise de desempenho para 16KB - simulador.log
+---------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual NRU simulador.log 16 1
+Executando o simulador...
+Arquivo de entrada: simulador.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 16 KB
+Algoritmo de substituição: NRU
+Numero de Faltas de Paginas: 90839
+Escritas de Páginas escritas: 6505
+----------------------------------------------------------------------------------------------------
+[e1413428@prata src]$ ./sim-virtual LRU simulador.log 16 1
+Executando o simulador...
+Arquivo de entrada: simulador.log
+Tamanho da memoria fisica: 1 MB
+Tamanho das páginas: 16 KB
+Algoritmo de substituição: LRU
+Numero de Faltas de Paginas: 29479
+Escritas de Páginas escritas: 8180
+
+---------------------------------------------------------------------------------------------------
+Comentários sobre a análise de desempenho - 16 KB
+---------------------------------------------------------------------------------------------------
+Nestas análises já não observamos a mesma coerência no desempenho dos algoritmos, que foi observado na análise com 8 KB. Apesar disso, os algoritmos LRU e NOVO ainda tiveram um desempenho muito superior ao NRU. Nos arquivos compressor.log e compilador.log, o algortimo LRU se saiu ligeiramente melhor que o algoritmo NOVO. E se compararmos a performance da paginação nos diferentes tamanhos de página, podemos observar que o desempenho melhor se deu com páginas menores. A expectativa era que com páginas maiores o desempenho seria melhor, pois não ocorrer o que chamamos de Thrashing. Entretanto se considerarmos que o tamanho da memória se manteve fixado, o desempenho melhor da paginação com páginas menores pode ser atribuido a uma maior quantidade de páginas carregadas na memória.  
